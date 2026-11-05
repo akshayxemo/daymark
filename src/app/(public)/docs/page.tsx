@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import { absoluteUrl, repositoryUrl, siteName } from '@/lib/site';
+import { PublicAuthLink } from '../auth-actions';
 
 const title = 'Documentation';
 const description =
@@ -456,8 +457,9 @@ export default function DocsPage() {
               </li>
             </ul>
             <p className="site-prose-meta">
-              Ready to try it? <Link href="/register">Create an account on this instance</Link> or
-              go back to the <Link href="/features">feature overview</Link>.
+              Next:{' '}
+              <PublicAuthLink href="/register">Create an account on this instance</PublicAuthLink>{' '}
+              or go back to the <Link href="/features">feature overview</Link>.
             </p>
           </section>
         </div>

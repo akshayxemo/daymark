@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 import { absoluteUrl, siteName } from '@/lib/site';
+import { PublicAuthLink, SignedOut } from '../auth-actions';
 
 const title = 'Features';
 const description =
@@ -334,15 +335,17 @@ export default function FeaturesPage() {
         <div className="site-container">
           <div className="site-cta-box">
             <h2 id="features-cta-title">Try it on your own work.</h2>
-            <p>
-              Create an account on this instance, or read the documentation to run {siteName} on
-              your own machine in a few minutes.
-            </p>
+            <SignedOut>
+              <p>
+                Create an account on this instance, or read the documentation to run {siteName} on
+                your own machine in a few minutes.
+              </p>
+            </SignedOut>
             <div className="site-actions">
-              <Link className="btn btn-primary" href="/register">
+              <PublicAuthLink className="btn btn-primary" href="/register">
                 Create your account
                 <ArrowRight size={14} aria-hidden="true" />
-              </Link>
+              </PublicAuthLink>
               <Link className="btn btn-outline" href="/docs">
                 Read the docs
               </Link>
