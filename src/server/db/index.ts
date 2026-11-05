@@ -1,16 +1,25 @@
 import 'server-only';
-import { drizzle } from 'drizzle-orm/postgres-js';
-import postgres from 'postgres';
-import * as schema from './schema';
+import { getEnv } from '@/server/config/env';
+import { createDatabase, type DatabaseClient } from './client';
 
-// Only initialize when a server feature requests it: the existing local demo
-// must remain usable while a PostgreSQL instance is being configured.
-let database: ReturnType<typeof drizzle<typeof schema>> | undefined;
-export function getDatabase() {
-  if (database) return database;
-  const url = process.env.DATABASE_URL;
-  if (!url) throw new Error('DATABASE_URL is required for server-backed features');
-  const sql = postgres(url, { max: 1, prepare: false });
-  database = drizzle(sql, { schema });
-  return database;
+/**
+ * Process-wide database singleton for the Next.js runtime. The client is
+ * created lazily so that building the application never requires a database,
+ * and it survives hot reloads in development through a global reference.
+ */
+const globalRef = globalThis as unknown as {
+  __daymarkDatabase?: ReturnType<typeof createDatabase>;
+};
+
+export function getDatabase(): DatabaseClient {
+  if (!globalRef.__daymarkDatabase) {
+    const env = getEnv();
+    globalRef.__daymarkDatabase = createDatabase(env.DATABASE_URL, {
+      // Vercel functions are short-lived and many instances may run at once.
+      max: env.VERCEL_ENV ? 2 : 10,
+    });
+  }
+  return globalRef.__daymarkDatabase.db;
 }
+
+export * from './client';

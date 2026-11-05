@@ -1,0 +1,141 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Cancel superseded runs of the same branch or pull request.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  NEXT_TELEMETRY_DISABLED: 1
+
+jobs:
+  test:
+    name: Typecheck, lint, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: daymark
+          POSTGRES_PASSWORD: daymark
+          POSTGRES_DB: daymark_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U daymark -d daymark_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      # No version input: pnpm/action-setup reads package.json#packageManager
+      # (pnpm@10.34.9) so CI and local installs always agree.
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm typecheck
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Integration tests
+        run: pnpm test:integration
+        env:
+          TEST_DATABASE_URL: postgresql://daymark:daymark@localhost:5432/daymark_test
+          BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1234
+
+      - name: Build
+        run: pnpm build
+        env:
+          DATABASE_URL: postgresql://daymark:daymark@localhost:5432/daymark_test
+          BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1234
+          APP_URL: http://localhost:3000
+          EMAIL_PROVIDER: console
+
+  e2e:
+    name: End-to-end tests
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: false
+
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: daymark
+          POSTGRES_PASSWORD: daymark
+          POSTGRES_DB: daymark_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U daymark -d daymark_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+      # Test inbox: the app sends real SMTP mail here and the tests read it over HTTP.
+      mailpit:
+        image: axllent/mailpit:v1.27
+        ports:
+          - 1025:1025
+          - 8025:8025
+
+    # The Playwright config builds and starts the app in production mode with
+    # SMTP pointed at Mailpit; only the database and secret come from here.
+    env:
+      TEST_DATABASE_URL: postgresql://daymark:daymark@localhost:5432/daymark_test
+      BETTER_AUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret-1234
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+          if-no-files-found: ignore

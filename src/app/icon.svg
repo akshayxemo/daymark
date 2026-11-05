@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Daymark">
+  <rect width="64" height="64" rx="14" fill="#101211"/>
+  <g fill="#c1e69b" transform="translate(32 32) skewX(-10) translate(-32 -32)">
+    <rect x="18.5" y="28" width="7" height="19" rx="2"/>
+    <rect x="28.5" y="17" width="7" height="30" rx="2"/>
+    <rect x="38.5" y="23" width="7" height="24" rx="2"/>
+  </g>
+</svg>
