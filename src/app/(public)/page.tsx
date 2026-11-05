@@ -14,6 +14,7 @@ import {
   Timer,
 } from 'lucide-react';
 import { absoluteUrl, repositoryUrl, siteDescription, siteName, siteTagline } from '@/lib/site';
+import { PublicAuthLink, SignedOut } from './auth-actions';
 
 const pageTitle = `${siteName} — ${siteTagline}`;
 
@@ -174,10 +175,10 @@ export default function HomePage() {
               delivered, across work, personal life and learning, in a database you own.
             </p>
             <div className="site-actions">
-              <Link className="btn btn-primary" href="/register">
+              <PublicAuthLink className="btn btn-primary" href="/register">
                 Create your account
                 <ArrowRight size={14} aria-hidden="true" />
-              </Link>
+              </PublicAuthLink>
               <Link className="btn btn-outline" href="/docs">
                 Read the docs
               </Link>
@@ -437,25 +438,29 @@ export default function HomePage() {
               {siteTagline}
             </p>
             <h2 id="cta-title">Start recording your days.</h2>
-            <p>
-              Create an account on this instance, or clone the repository and run your own. Either
-              way the data is yours.
-            </p>
+            <SignedOut>
+              <p>
+                Create an account on this instance, or clone the repository and run your own. Either
+                way the data is yours.
+              </p>
+            </SignedOut>
             <div className="site-actions">
-              <Link className="btn btn-primary" href="/register">
+              <PublicAuthLink className="btn btn-primary" href="/register">
                 Create your account
                 <ArrowRight size={14} aria-hidden="true" />
-              </Link>
+              </PublicAuthLink>
               <Link className="btn btn-outline" href="/docs">
                 Read the docs
               </Link>
             </div>
-            <p className="site-cta-alt">
-              Already have an account?{' '}
-              <Link className="link" href="/login">
-                Log in
-              </Link>
-            </p>
+            <SignedOut>
+              <p className="site-cta-alt">
+                Already have an account?{' '}
+                <Link className="link" href="/login">
+                  Log in
+                </Link>
+              </p>
+            </SignedOut>
           </div>
         </div>
       </section>

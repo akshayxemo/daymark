@@ -1,11 +1,12 @@
 import Link from 'next/link';
 import { ExternalLink, Menu } from 'lucide-react';
 import { repositoryUrl, siteName, siteTagline } from '@/lib/site';
+import { PublicAuthLink, SignedOut } from './auth-actions';
 
 /**
  * Shared chrome for the public website (header, footer, brand).
- * Server Components only: no state, no browser APIs. The mobile menu is a
- * native <details> element so the pages stay fully static.
+ * Account actions check the session on the client so public pages stay static.
+ * The mobile menu uses a native <details> element.
  */
 
 export function Brand() {
@@ -36,13 +37,15 @@ function NavItems() {
           <ExternalLink size={12} aria-hidden="true" />
         </a>
       </li>
-      <li>
-        <Link href="/login">Log in</Link>
-      </li>
+      <SignedOut>
+        <li>
+          <Link href="/login">Log in</Link>
+        </li>
+      </SignedOut>
       <li className="site-nav-cta">
-        <Link className="btn btn-primary btn-sm" href="/register">
+        <PublicAuthLink className="btn btn-primary btn-sm" href="/register">
           Get started
-        </Link>
+        </PublicAuthLink>
       </li>
     </>
   );
@@ -101,7 +104,7 @@ export function SiteFooter() {
               <Link href="/terms">Terms</Link>
             </li>
             <li>
-              <Link href="/login">Log in</Link>
+              <PublicAuthLink href="/login">Log in</PublicAuthLink>
             </li>
           </ul>
         </nav>
