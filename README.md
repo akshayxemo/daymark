@@ -1,63 +1,65 @@
 # Daymark
 
-A personal work and life intelligence dashboard. This repository contains the **interactive dashboard design milestone**, built locally from the supplied Daymark product specification.
+An open-source, privacy-first personal work and life intelligence dashboard. Daymark records what you planned, what you worked on, how much time you invested and what you actually delivered, across private Office, Personal, Learning and custom workspaces.
 
-## Run locally
+![Daymark dashboard (fictional demo data)](docs/dashboard-preview.jpg)
 
-Requires Node.js 20.9+ and pnpm.
+Status: **0.2.0, pre-release.** The code is complete for a public beta and tested locally; no hosted deployment exists yet. See [docs/DEVELOPMENT_PLAN.md](docs/DEVELOPMENT_PLAN.md) for exactly what is implemented, verified and planned.
 
-```sh
-cd <to project directory>
+## What it does
+
+- **Workspaces** with their own projects, configurable statuses (behaviour set by flags, not names), task types, phases and tags.
+- **Tasks** with subtasks, dependencies, priorities, estimates, planned and due dates, tags, search, filters and archive.
+- **History you can trust:** every status, phase and planning change is recorded in a transaction; moving a task never erases its original plan.
+- **Planning:** daily view with carryover, weekly planner with drag and drop, weekly goals, daily notes and end-of-day reviews.
+- **Time tracking:** a server-side timer with pause and resume that survives refreshes and devices (one active timer per account, enforced by the database), plus audited manual entries with overlap detection.
+- **Development tracking:** repositories, branches, Jira/PR/commit/docs references, and separate merge, deployment and production-verification records per environment.
+- **Activity timeline, journal (Markdown) and analytics:** completion, time distribution, estimate versus actual, carryover, cycle time, delivery rates. No combined "productivity score".
+- **Your data:** JSON export and restore, CSV exports, account deletion. No tracking scripts.
+
+## Local development
+
+Requirements: Node.js 20.9+, pnpm 10 (`corepack enable`), Docker.
+
+```bash
+git clone https://github.com/akshayxemo/daymark.git
+cd daymark
+corepack enable
 pnpm install
-pnpm dev
+cp .env.example .env.local        # set BETTER_AUTH_SECRET (openssl rand -base64 32)
+docker compose up -d db           # PostgreSQL on 127.0.0.1:5432, plus a daymark_test database
+pnpm db:migrate
+pnpm db:seed --demo               # optional: fictional demo account demo@daymark.local
+pnpm dev                          # http://localhost:3000
 ```
 
-Open http://127.0.0.1:3000. The development server uses Webpack with polling because Turbopack's FSEvent watcher failed on this machine. It listens only on the local loopback interface.
+With the default `EMAIL_PROVIDER=console`, verification and reset links are printed in the terminal running `pnpm dev`. To receive real SMTP mail locally, run `docker compose --profile mail up -d mailpit` and use its inbox at `http://127.0.0.1:8025`.
 
-```sh
-pnpm typecheck
-pnpm test
-pnpm build
-pnpm start
-```
+## Scripts
 
-## Explore the design
+| Command                                                                  | Purpose                                                                       |
+| ------------------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `pnpm dev` / `pnpm build` / `pnpm start`                                 | Develop, build, run the production server                                     |
+| `pnpm typecheck` / `pnpm lint` / `pnpm format`                           | Type checking, ESLint, Prettier                                               |
+| `pnpm test`                                                              | Unit tests                                                                    |
+| `pnpm test:integration`                                                  | Tests against PostgreSQL (`TEST_DATABASE_URL`, wiped on each run)             |
+| `pnpm test:e2e`                                                          | Playwright against the production build; needs PostgreSQL and Mailpit running |
+| `pnpm db:migrate` / `db:status` / `db:seed` / `db:reset` / `db:generate` | Database lifecycle, see [docs/DATABASE.md](docs/DATABASE.md)                  |
 
-- Dark default and a complete light theme, plus responsive navigation.
-- Overview with task completion, time investment, focus sessions, and a sample delivery metric.
-- Scope the dashboard to Office, Personal, Learning, or all workspaces.
-- Time reports use Today, This week (Monday onward), or This month.
-- Create tasks, mark them complete, and edit status, phase, priority, or planned date in a side panel.
-- Task changes append entries to local activity history.
-- Start, pause, resume, and stop one local focus timer. Timestamps and accumulated active time survive browser refresh. Starting another task saves the previous session; a timer-stopping status also saves it.
-- Navigate tasks, daily planning, weekly planning, projects, development, sessions, activity, journal, analytics, and settings.
-- Create and edit workspace-specific projects, assign tasks to them, and safely archive or restore projects while keeping their tasks and history. Older browser data and exports are migrated from task project names.
-- Drag a task to another day in the weekly planner. Each move records the previous and new planned dates in activity; open the task and edit its planned date for keyboard or touch use.
-- Use Command/Ctrl+K for global task and page search.
-- Toggle weekly intentions and dashboard widgets.
-- Export and restore a validated JSON copy through Settings.
+## Deploying
 
-## Data and milestone boundary
+- Vercel + Supabase: [docs/SUPABASE_SETUP.md](docs/SUPABASE_SETUP.md), then [docs/VERCEL_DEPLOYMENT.md](docs/VERCEL_DEPLOYMENT.md).
+- Self-hosted with Docker Compose: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#self-hosting-with-docker-compose).
+- Every environment variable: [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md#environment-variables).
 
-The app starts with fictional sample projects, sessions, activity, and a production delivery. The demo badge identifies this experience. No account or external service is required. Browser localStorage stores the demo under `daymark.design.v1`. New sessions and edits persist in that browser and origin; use the same URL consistently.
+## Documentation
 
-This is **not the production MVP**. There is no PostgreSQL connection, authentication, authorization, durable server audit log, manual time-entry reconciliation, backup service, or production deployment yet. Timers are based on browser/device timestamps and do not guarantee cross-tab or cross-device concurrency. The fixed sample delivery log is for interface design. Journal and intentions are account-wide demo preferences, while task, time, and activity views honor workspace scope. Tasks completed in the summary are explicitly today's planned tasks; time metrics honor the report date filter.
+[Architecture](docs/ARCHITECTURE.md) · [Database](docs/DATABASE.md) · [Security review](docs/SECURITY.md) · [Product specification](docs/PRODUCT_SPEC.md) · [Decision records](docs/adr/) · [Contributing](CONTRIBUTING.md) · [Security policy](SECURITY.md) · [Changelog](CHANGELOG.md)
 
-Browser storage can be cleared or tampered with and should not hold sensitive production data. JSON import replaces this local demo after validating its schema and relationships. Export first if you want to preserve existing changes.
+## Moving from the browser-only preview
 
-## Structure
+Version 0.1.0 stored a demo in your browser (`localStorage` key `daymark.design.v1`). After signing in, **Settings → Your data** detects it, shows what it contains and imports it on request. The built-in fictional sample tasks are skipped unless you include them, and the browser copy is kept until you remove it.
 
-- `src/app/(dashboard)`: App Router routes with a persistent shared dashboard layout. Sections have direct URLs such as `/planner`, `/projects`, and `/tasks`.
-- `src/components/dashboard.tsx`: Dashboard shell and section composition.
-- `src/components/pages`: Planner, projects, development, and settings views.
-- `src/components/dashboard`: Shared cards, dialogs, widgets, and the browser state controller.
-- `src/lib/routes.ts`: Section-to-URL mapping used for navigation and static routes.
-- `src/lib/dashboard-state.ts`: Timer finalization and saved-data validation.
-- `src/components/ui/button.tsx`: shadcn-style Button, Radix Slot, and class variants.
-- `src/lib/model.ts`: Typed demo records, configurable status definitions, and timer calculations.
-- `src/lib/model.test.ts`: Focus timer persistence, pause/resume, and clock edge cases.
-- `docs/PRODUCT_SPEC.md`: Original user-supplied specification, preserved verbatim.
-- `docs/ARCHITECTURE.md`: Production boundaries and the current design implementation.
-- `docs/DEVELOPMENT_PLAN.md`: Completed design work and the next implementation milestones.
+## License
 
-Next.js, React, TypeScript, Tailwind CSS, Radix/shadcn conventions, Lucide, and Recharts are used in this milestone. Dependencies are locked in `pnpm-lock.yaml`. No external fonts, images, or analytics are loaded by the app.
+[MIT](LICENSE). Do not record patient data, credentials or confidential employer information in a hosted instance you do not control.
