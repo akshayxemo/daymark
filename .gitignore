@@ -7,3 +7,8 @@ out/
 .DS_Store
 
 .pnpm-store/
+
+# Test artifacts
+playwright-report/
+test-results/
+blob-report/

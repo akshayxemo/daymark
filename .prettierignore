@@ -1,0 +1,25 @@
+# Dependencies, build output and caches
+node_modules
+.pnpm-store
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Lockfile and generated migration artifacts
+pnpm-lock.yaml
+drizzle/**/*.json
+drizzle/*.sql
+
+# Test artifacts
+playwright-report
+test-results
+
+# Static assets
+public
+
+# Markdown is intentionally formatted; do not add *.md here.
+
+# The product specification is preserved verbatim.
+docs/PRODUCT_SPEC.md
