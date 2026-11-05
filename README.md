@@ -7,7 +7,7 @@ A personal work and life intelligence dashboard. This repository contains the **
 Requires Node.js 20.9+ and pnpm.
 
 ```sh
-cd /Users/akshaykumardas/Desktop/Personal/daymark
+cd <to project directory>
 pnpm install
 pnpm dev
 ```
