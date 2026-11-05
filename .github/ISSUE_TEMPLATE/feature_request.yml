@@ -1,0 +1,61 @@
+name: Feature request
+description: Suggest an improvement or a new capability for Daymark.
+title: '[Feature]: '
+labels: ['enhancement']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping shape Daymark. Describe the problem you are trying to solve before the solution; it helps find the right design.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way today?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How would you like this to work? Sketches, example flows or API shapes are welcome.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches or workarounds you have tried or rejected.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Tasks and planning
+        - Time tracking and timer
+        - Projects and workspaces
+        - Development references and deliveries
+        - Journal, goals and reviews
+        - Analytics
+        - Authentication and accounts
+        - API
+        - Deployment and self-hosting
+        - Other
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Anything else that helps, such as links to related issues.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues and this has not been requested yet.
+          required: true

@@ -1,0 +1,42 @@
+# Dependencies and build output are produced inside the image.
+node_modules
+.pnpm-store
+.next
+out
+coverage
+*.tsbuildinfo
+next-env.d.ts
+
+# Version control and editor metadata.
+.git
+.gitignore
+.github
+.vscode
+.idea
+.DS_Store
+
+# Never bake environment files into the image; the example stays as reference.
+.env*
+!.env.example
+
+# Tests and their artifacts.
+tests
+playwright-report
+test-results
+vitest.config.mts
+playwright.config.*
+
+# Tooling that is not part of the runtime or the Next.js build.
+eslint.config.mjs
+.prettierrc.json
+.prettierignore
+.editorconfig
+components.json
+
+# Documentation, images and container files.
+docs
+*.md
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker
