@@ -68,8 +68,7 @@ export function OnboardingForm({
               description: p.description,
             }));
       await api.post('/me/onboarding', { workspaces: payload, timezone: zone });
-      router.push('/app');
-      router.refresh();
+      router.replace('/app');
     } catch (err) {
       setError(
         err instanceof ApiError ? err.message : 'Setup could not be saved. Please try again.',

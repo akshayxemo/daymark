@@ -81,7 +81,7 @@ Conventions: UUID primary keys (Better Auth tables use its text IDs), `timestamp
 
 ## Connections
 
-`src/server/db/client.ts` creates the pool with `prepare: false` (required behind transaction-mode poolers), small pool sizes on Vercel (`max: 2`) and short idle timeouts. The runtime uses `DATABASE_URL`; migrations use `DATABASE_URL_UNPOOLED` when present. Append `?sslmode=require` for hosted databases.
+`src/server/db/client.ts` creates the pool with `prepare: false` (required behind transaction-mode poolers), small pool sizes on Vercel (`max: 2`) and short idle timeouts. Supabase transaction-pooler connections (port 6543) also use `max_pipeline: 1`: overlapping queries on one connection can stall in Supavisor, leaving login and dashboard requests waiting for minutes. Queries still run concurrently on separate connections. The runtime uses `DATABASE_URL`; migrations use `DATABASE_URL_UNPOOLED` when present. Append `?sslmode=require` for hosted databases.
 
 ## Backup and restore
 

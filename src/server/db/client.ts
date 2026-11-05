@@ -24,11 +24,17 @@ export type CreateDatabaseOptions = {
  * anything Next.js-specific.
  */
 export function createDatabase(connectionString: string, options: CreateDatabaseOptions = {}) {
+  const target = new URL(connectionString);
+  const supabaseTransactionPooler =
+    target.hostname.endsWith('.pooler.supabase.com') && target.port === '6543';
   const sql = postgres(connectionString, {
     max: options.max ?? 5,
     // Transaction-mode poolers (Supabase, PgBouncer) do not support named
     // prepared statements, so the unnamed statement is used everywhere.
     prepare: options.prepare ?? false,
+    // Supavisor transaction pooling can stall when queries share a pipeline.
+    // Keep parallel work on separate connections, with one query in flight per connection.
+    max_pipeline: supabaseTransactionPooler ? 1 : 100,
     idle_timeout: 20,
     max_lifetime: 60 * 30,
     connect_timeout: 15,

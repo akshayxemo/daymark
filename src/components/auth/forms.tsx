@@ -2,7 +2,7 @@
 import { zodResolver } from '@hookform/resolvers/zod';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { authClient } from '@/lib/auth-client';
@@ -28,6 +28,7 @@ function safeNext(value: string | null): string {
 
 export function LoginForm() {
   const router = useRouter();
+  const [isNavigating, startNavigation] = useTransition();
   const params = useSearchParams();
   const next = safeNext(params.get('next'));
   const [error, setError] = useState<string | null>(
@@ -59,8 +60,7 @@ export function LoginForm() {
       else setError('That email and password combination was not recognised.');
       return;
     }
-    router.push(next);
-    router.refresh();
+    startNavigation(() => router.replace(next));
   });
 
   const resend = async () => {
@@ -108,8 +108,8 @@ export function LoginForm() {
         <Link className="text-link" href="/forgot-password">
           Forgot your password?
         </Link>
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Signing in…' : 'Sign in'}
+        <Button type="submit" disabled={form.formState.isSubmitting || isNavigating}>
+          {form.formState.isSubmitting || isNavigating ? 'Signing in…' : 'Sign in'}
         </Button>
       </div>
       <p className="auth-switch">
@@ -131,6 +131,7 @@ export function RegisterForm({
   requireVerification: boolean;
 }) {
   const router = useRouter();
+  const [isNavigating, startNavigation] = useTransition();
   const params = useSearchParams();
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
@@ -202,8 +203,7 @@ export function RegisterForm({
       setDone(values.email);
       return;
     }
-    router.push('/onboarding');
-    router.refresh();
+    startNavigation(() => router.replace('/onboarding'));
   });
 
   return (
@@ -245,8 +245,8 @@ export function RegisterForm({
         </p>
       )}
       <div className="form-actions">
-        <Button type="submit" disabled={form.formState.isSubmitting}>
-          {form.formState.isSubmitting ? 'Creating…' : 'Create account'}
+        <Button type="submit" disabled={form.formState.isSubmitting || isNavigating}>
+          {form.formState.isSubmitting || isNavigating ? 'Creating…' : 'Create account'}
         </Button>
       </div>
       <p className="auth-switch">
