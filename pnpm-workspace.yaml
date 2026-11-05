@@ -1,2 +1,5 @@
+allowBuilds:
+  esbuild: false
+storeDir: .pnpm-store
 minimumReleaseAgeExclude:
   - tailwindcss@4.3.4
