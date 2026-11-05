@@ -1,0 +1,2 @@
+minimumReleaseAgeExclude:
+  - tailwindcss@4.3.4
