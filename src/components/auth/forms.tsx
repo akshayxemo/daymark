@@ -38,6 +38,7 @@ export function LoginForm() {
   );
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null);
   const [resent, setResent] = useState(false);
+  const [resending, setResending] = useState(false);
   const form = useForm<z.input<typeof loginSchema>, unknown, LoginInput>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: '', password: '', rememberMe: true },
@@ -46,13 +47,16 @@ export function LoginForm() {
   const submit = form.handleSubmit(async (values) => {
     setError(null);
     setUnverifiedEmail(null);
+    setResent(false);
     const result = await authClient.signIn.email({
       email: values.email,
       password: values.password,
       rememberMe: values.rememberMe,
     });
     if (result.error) {
-      if (result.error.status === 403) setUnverifiedEmail(values.email);
+      if (result.error.code === 'EMAIL_NOT_VERIFIED') setUnverifiedEmail(values.email);
+      else if (result.error.status === 403)
+        setError(result.error.message || 'Sign-in is not allowed. Contact the installation owner.');
       else if (result.error.status === 429)
         setError('Too many attempts. Please wait a minute and try again.');
       else if (result.error.status >= 500)
@@ -64,9 +68,28 @@ export function LoginForm() {
   });
 
   const resend = async () => {
-    if (!unverifiedEmail) return;
-    await authClient.sendVerificationEmail({ email: unverifiedEmail, callbackURL: '/app' });
-    setResent(true);
+    if (!unverifiedEmail || resending) return;
+    setResending(true);
+    setError(null);
+    try {
+      const result = await authClient.sendVerificationEmail({
+        email: unverifiedEmail,
+        callbackURL: '/app',
+      });
+      if (result.error) {
+        setError(
+          result.error.status === 429
+            ? 'Too many email requests. Please wait a minute and try again.'
+            : 'The verification email could not be sent. Please try again later.',
+        );
+        return;
+      }
+      setResent(true);
+    } catch {
+      setError('The verification email could not be sent. Please try again later.');
+    } finally {
+      setResending(false);
+    }
   };
 
   return (
@@ -97,8 +120,13 @@ export function LoginForm() {
           Verify your email before signing in. Check your inbox for the link
           {resent ? '. A new link has been sent.' : ' or '}
           {!resent && (
-            <button type="button" className="text-link inline-link" onClick={resend}>
-              send it again
+            <button
+              type="button"
+              className="text-link inline-link"
+              disabled={resending}
+              onClick={resend}
+            >
+              {resending ? 'Sending…' : 'send it again'}
             </button>
           )}
           .
