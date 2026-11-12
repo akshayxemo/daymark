@@ -17,6 +17,15 @@ let exportPath = '';
 test('register, verify email, onboard and run the full daily workflow', async ({ page }) => {
   await registerAndOnboard(page, alice.name, alice.email);
 
+  // Reopening the site with the existing session resumes the dashboard.
+  const reopened = await page.context().newPage();
+  await reopened.goto('/');
+  await expect(reopened).toHaveURL(/\/app$/);
+  await reopened.getByRole('link', { name: 'Home', exact: true }).click();
+  await expect(reopened).toHaveURL(/\/?\?home=1$/);
+  await expect(reopened.getByRole('heading', { level: 1, name: /clear record/i })).toBeVisible();
+  await reopened.close();
+
   // Workspaces: Office and Personal exist; add a custom one.
   await page.goto('/app/settings/workspaces');
   await page.getByRole('button', { name: 'New workspace' }).click();

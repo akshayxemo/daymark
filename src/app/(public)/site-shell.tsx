@@ -11,7 +11,7 @@ import { PublicAuthLink, SignedOut } from './auth-actions';
 
 export function Brand() {
   return (
-    <Link className="brand" href="/" aria-label={`${siteName} home`}>
+    <Link className="brand" href="/?home=1" aria-label={`${siteName} home`}>
       <span className="brand-mark" aria-hidden="true">
         <span />
         <span />

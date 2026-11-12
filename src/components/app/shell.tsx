@@ -225,6 +225,10 @@ export function AppShell({
           })}
         </nav>
         <div className="sidebar-bottom">
+          <Link className="nav-link" href="/?home=1">
+            <House size={17} />
+            Home
+          </Link>
           <div className="self-hosted">
             <span className="live-dot" />
             <span>Your space. Your data.</span>

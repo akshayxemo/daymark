@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { getSession } from '@/server/auth/session';
 import {
   Activity,
   ArrowRight,
@@ -151,7 +153,15 @@ const privacyPoints = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ home?: string }>;
+}) {
+  // Reopening the origin should resume work. An explicit Home link keeps
+  // the public page available without signing the user out.
+  const { home } = await searchParams;
+  if (home !== '1' && (await getSession())) redirect('/app');
   return (
     <>
       <script
